@@ -31,4 +31,25 @@ export default function useDarkMode() {
 ```
 
 
-2. Making the main page , with different panels, using `npm install react-resizable-panels`
+2. Making the main page , with different panels, using `npm install react-resizable-panels`, and app.jsx code.
+
+
+3. So now add  the timer 
+```
+/src
+│
+├── /components
+│   ├── Timer.jsx         # Reusable timer display and controls
+│   ├── TaskControls.jsx  # Buttons for switching task, start, stop
+│
+├── /context
+│   └── TaskTimerContext.jsx  # Global timer state (current task, running state, total time)
+│
+├── /hooks
+│   ├── useTimer.js       # Core custom timer logic
+│   └── useDocumentTitle.js # For updating HTML title
+│
+├── /utils
+│   └── formatTime.js     # Helper to convert seconds to MM:SS
+
+```
