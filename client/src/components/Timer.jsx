@@ -5,10 +5,13 @@ import React from "react";
 import useTimer from "../hooks/useTimer";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import formatTime from "../utils/formatTime";
-import { useTaskTimer } from "../context/TaskTimerContext";
+import { useTaskTimer } from "../hooks/useTaskTimer";
+
 
 export default function Timer() {
-  const { state, dispatch } = useTaskTimer();
+ const { state, dispatch } = useTaskTimer();
+console.log("Timer loaded"); // Check if this shows up
+
   const elapsed = useTimer(state.isRunning, state.startTimestamp);
 
   // Update browser tab title with timer
