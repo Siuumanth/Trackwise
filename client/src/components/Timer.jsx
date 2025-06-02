@@ -1,18 +1,17 @@
-import React from "react";
+import React, { useMemo } from "react";
 import useTimer from "../hooks/useTimer";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import formatTime from "../utils/formatTime";
 import { useTaskTimer } from "../hooks/useTaskTimer";
 import useDarkMode from "../hooks/useDarkMode";
+import { Pause, Play } from "lucide-react";
 
 export default function Timer() {
   const { state, dispatch } = useTaskTimer();
   const runningElapsed = useTimer(state.isRunning, state.startTimestamp);
   const [isDark] = useDarkMode();
 
-  // Compute displayed time
   let displayTime = 0;
-
   if (state.isRunning) {
     displayTime = runningElapsed;
   } else if (state.currentTaskId) {
@@ -20,14 +19,18 @@ export default function Timer() {
     displayTime = selected?.elapsed || 0;
   }
 
-  useDocumentTitle(`${formatTime(displayTime)} - Trackwise`);
+  const formattedTime = useMemo(() => formatTime(displayTime), [displayTime]);
+  useDocumentTitle(`${formattedTime} - Trackwise`);
 
-  const handlePause = () => {
-    dispatch({ type: "PAUSE", payload: { elapsed: displayTime } });
-  };
+  const handleToggle = () => {
+    if (!state.currentTaskId) {
+      alert("Please select a task from the right panel first.");
+      return;
+    }
 
-  const handleStartTask = () => {
-    if (state.currentTaskId) {
+    if (state.isRunning) {
+      dispatch({ type: "PAUSE", payload: { elapsed: displayTime } });
+    } else {
       dispatch({
         type: "START_TASK",
         payload: {
@@ -35,8 +38,6 @@ export default function Timer() {
           offset: displayTime,
         },
       });
-    } else {
-      alert("Please select a task from the right panel first.");
     }
   };
 
@@ -45,12 +46,20 @@ export default function Timer() {
   const normalizedRadius = radius - stroke * 0.5;
 
   const textColor = isDark ? "#fff" : "#000";
+  const iconColor = isDark ? "text-white" : "text-black";
   const bgRing = isDark ? "#374151" : "#e5e7eb";
 
   return (
-    <div className="flex flex-col items-center justify-center h-full space-y-8">
+    <div
+      className="flex flex-col items-center justify-center h-full space-y-5 cursor-pointer select-none"
+      onClick={handleToggle}
+    >
       {/* Timer Display */}
-      <div className={`relative rounded-full shadow-xl transition-all duration-500 ${state.isRunning ? "ring-4 ring-blue-500/40" : ""}`}>
+      <div
+        className={`relative rounded-full transition-shadow duration-300 ${
+          state.isRunning ? "shadow-lg" : ""
+        }`}
+      >
         <svg height={radius * 2} width={radius * 2}>
           <circle
             stroke={bgRing}
@@ -67,29 +76,25 @@ export default function Timer() {
             textAnchor="middle"
             fontSize="52"
             fill={textColor}
+            className="transition-opacity duration-150 ease-in-out"
           >
-            {formatTime(displayTime)}
+            {formattedTime}
           </text>
         </svg>
       </div>
 
-      {/* Controls */}
-      <div className="flex flex-wrap justify-center gap-3">
+      {/* Start / Pause Icon */}
+      <div className={`mt-1 ${iconColor}`}>
         {state.isRunning ? (
-          <button
-            onClick={handlePause}
-            className="bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white font-semibold px-5 py-2 rounded-lg shadow"
-          >
-            Pause
-          </button>
+          <Pause className="w-10 h-10 opacity-90 drop-shadow-md" />
         ) : (
-          <button
-            onClick={handleStartTask}
-            className="bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white font-semibold px-5 py-2 rounded-lg shadow"
-          >
-            Start
-          </button>
+          <Play className="w-10 h-10 opacity-90 drop-shadow-md" />
         )}
+      </div>
+
+      {/* Info Text */}
+      <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        Click or tap anywhere to {state.isRunning ? "pause" : "start"}
       </div>
     </div>
   );
