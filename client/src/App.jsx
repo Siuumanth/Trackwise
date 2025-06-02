@@ -7,13 +7,15 @@ import useDarkMode from "./hooks/useDarkMode";
 import DarkLogo from "./assets/logo-dark.png";
 import LightLogo from "./assets/logo-light.png";
 import Timer from "./components/Timer";
+import { TaskTimerProvider } from "./context/TaskTimerContext";
+import TasksPanel from "./components/TasksPanel";
 
 export default function App() {
   const [isDark, toggleDarkMode] = useDarkMode();
 
   return (
     <div className="h-screen w-screen flex flex-col bg-white dark:bg-zinc-900 text-black dark:text-white transition-colors duration-300">
-      {/* Header with logo and theme toggle */}
+      {/* Header */}
       <div className="flex justify-between items-center p-3 border-b border-gray-300 dark:border-zinc-700">
         <img
           src={isDark ? DarkLogo : LightLogo}
@@ -44,28 +46,37 @@ export default function App() {
       <div className="flex-1">
         <PanelGroup direction="horizontal">
           {/* Left Sidebar */}
-          <Panel defaultSize={20} minSize={10}>
-            <div className="h-full bg-gray-100 dark:bg-zinc-800 p-4">
+          <Panel defaultSize={15} minSize={10}>
+            <div className="h-full bg-gray-100 dark:bg-zinc-800 p-4 border-r border-gray-300 dark:border-zinc-700">
               <p>Sidebar</p>
             </div>
           </Panel>
 
-          <PanelResizeHandle className="w-2 cursor-col-resize bg-gray-300 dark:bg-zinc-700" />
+          {/* Horizontal Resizer */}
+          <PanelResizeHandle className="w-2 flex items-center justify-center group cursor-col-resize bg-gray-300 dark:bg-zinc-700">
+            <div className="w-1 h-6 rounded bg-gray-500 dark:bg-gray-400 opacity-70 group-hover:opacity-100 transition-all"></div>
+          </PanelResizeHandle>
 
           {/* Center (Timer + Notes) */}
-          <Panel defaultSize={60} minSize={30}>
+          <Panel defaultSize={70} minSize={40}>
             <PanelGroup direction="vertical">
-              {/* Timer */}
-              <Panel defaultSize={30} minSize={20}>
-                <div className="h-full bg-white dark:bg-zinc-900 p-4">
-                  <Timer />
+              {/* Timer Panel */}
+              <Panel defaultSize={50} minSize={30}>
+                <div className="h-full bg-white dark:bg-zinc-900 p-4 border-b border-gray-300 dark:border-zinc-700 flex flex-col">
+                  <h2 className="text-2xl font-semibold mb-4 text-center">Timer</h2>
+                  <div className="flex-1 flex items-center justify-center">
+                    <Timer />
+                  </div>
                 </div>
               </Panel>
 
-              <PanelResizeHandle className="h-2 cursor-row-resize bg-gray-300 dark:bg-zinc-700" />
+              {/* Vertical Resizer */}
+              <PanelResizeHandle className="h-2 flex items-center justify-center group cursor-row-resize bg-gray-300 dark:bg-zinc-700">
+                <div className="h-1 w-6 rounded bg-gray-500 dark:bg-gray-400 opacity-70 group-hover:opacity-100 transition-all"></div>
+              </PanelResizeHandle>
 
-              {/* Notes */}
-              <Panel defaultSize={70} minSize={30}>
+              {/* Notes Panel */}
+              <Panel defaultSize={50} minSize={20}>
                 <div className="h-full bg-gray-50 dark:bg-zinc-800 p-4">
                   <p>Notes</p>
                 </div>
@@ -73,12 +84,15 @@ export default function App() {
             </PanelGroup>
           </Panel>
 
-          <PanelResizeHandle className="w-2 cursor-col-resize bg-gray-300 dark:bg-zinc-700" />
+          {/* Horizontal Resizer */}
+          <PanelResizeHandle className="w-2 flex items-center justify-center group cursor-col-resize bg-gray-300 dark:bg-zinc-700">
+            <div className="w-1 h-6 rounded bg-gray-500 dark:bg-gray-400 opacity-70 group-hover:opacity-100 transition-all"></div>
+          </PanelResizeHandle>
 
-          {/* Right Tasks */}
-          <Panel defaultSize={20} minSize={10}>
-            <div className="h-full bg-gray-100 dark:bg-zinc-800 p-4">
-              <p>Tasks</p>
+          {/* Right Tasks Panel */}
+          <Panel defaultSize={15} minSize={10}>
+            <div className="h-full bg-gray-100 dark:bg-zinc-800 p-4 border-l border-gray-300 dark:border-zinc-700">
+              <TasksPanel />
             </div>
           </Panel>
         </PanelGroup>

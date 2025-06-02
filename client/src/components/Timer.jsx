@@ -1,55 +1,95 @@
-
-
-// /src/components/Timer.jsx
 import React from "react";
 import useTimer from "../hooks/useTimer";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 import formatTime from "../utils/formatTime";
 import { useTaskTimer } from "../hooks/useTaskTimer";
-
+import useDarkMode from "../hooks/useDarkMode";
 
 export default function Timer() {
- const { state, dispatch } = useTaskTimer();
-console.log("Timer loaded"); // Check if this shows up
+  const { state, dispatch } = useTaskTimer();
+  const runningElapsed = useTimer(state.isRunning, state.startTimestamp);
+  const [isDark] = useDarkMode();
 
-  const elapsed = useTimer(state.isRunning, state.startTimestamp);
+  // Compute displayed time
+  let displayTime = 0;
 
-  // Update browser tab title with timer
-  useDocumentTitle(`${formatTime(elapsed)} - Trackwise`);
+  if (state.isRunning) {
+    displayTime = runningElapsed;
+  } else if (state.currentTaskId) {
+    const selected = state.tasks.find((t) => t.id === state.currentTaskId);
+    displayTime = selected?.elapsed || 0;
+  }
 
-  // Event handlers for buttons
+  useDocumentTitle(`${formatTime(displayTime)} - Trackwise`);
+
   const handlePause = () => {
-    dispatch({ type: "PAUSE", payload: { elapsed } });
+    dispatch({ type: "PAUSE", payload: { elapsed: displayTime } });
   };
 
   const handleStartTask = () => {
-    dispatch({ type: "START_TASK", payload: { taskId: "task-1", offset: elapsed } });
+    if (state.currentTaskId) {
+      dispatch({
+        type: "START_TASK",
+        payload: {
+          taskId: state.currentTaskId,
+          offset: displayTime,
+        },
+      });
+    } else {
+      alert("Please select a task from the right panel first.");
+    }
   };
 
-  const handleStartTotal = () => {
-    dispatch({ type: "START_TOTAL", payload: { offset: elapsed } });
-  };
+  const radius = 120;
+  const stroke = 10;
+  const normalizedRadius = radius - stroke * 0.5;
 
-  const handleReset = () => {
-    dispatch({ type: "RESET" });
-  };
+  const textColor = isDark ? "#fff" : "#000";
+  const bgRing = isDark ? "#374151" : "#e5e7eb";
 
   return (
-    <div className="text-center space-y-4">
-      {/* Timer display */}
-      <h2 className="text-4xl font-bold">{formatTime(elapsed)}</h2>
+    <div className="flex flex-col items-center justify-center h-full space-y-8">
+      {/* Timer Display */}
+      <div className={`relative rounded-full shadow-xl transition-all duration-500 ${state.isRunning ? "ring-4 ring-blue-500/40" : ""}`}>
+        <svg height={radius * 2} width={radius * 2}>
+          <circle
+            stroke={bgRing}
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+          />
+          <text
+            x="50%"
+            y="50%"
+            dominantBaseline="middle"
+            textAnchor="middle"
+            fontSize="52"
+            fill={textColor}
+          >
+            {formatTime(displayTime)}
+          </text>
+        </svg>
+      </div>
 
-      {/* Control buttons */}
-      <div className="space-x-2">
+      {/* Controls */}
+      <div className="flex flex-wrap justify-center gap-3">
         {state.isRunning ? (
-          <button onClick={handlePause} className="bg-red-500 text-white px-4 py-2 rounded">Pause</button>
+          <button
+            onClick={handlePause}
+            className="bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-800 text-white font-semibold px-5 py-2 rounded-lg shadow"
+          >
+            Pause
+          </button>
         ) : (
-          <>
-            <button onClick={handleStartTask} className="bg-green-500 text-white px-4 py-2 rounded">Start Task</button>
-            <button onClick={handleStartTotal} className="bg-blue-500 text-white px-4 py-2 rounded">Track Total</button>
-          </>
+          <button
+            onClick={handleStartTask}
+            className="bg-green-600 dark:bg-green-700 hover:bg-green-700 dark:hover:bg-green-800 text-white font-semibold px-5 py-2 rounded-lg shadow"
+          >
+            Start
+          </button>
         )}
-        <button onClick={handleReset} className="bg-gray-500 text-white px-4 py-2 rounded">Reset</button>
       </div>
     </div>
   );
