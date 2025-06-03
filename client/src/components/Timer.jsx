@@ -8,16 +8,18 @@ import { Pause, Play } from "lucide-react";
 
 export default function Timer() {
   const { state, dispatch } = useTaskTimer();
-  const runningElapsed = useTimer(state.isRunning, state.startTimestamp);
   const [isDark] = useDarkMode();
 
-  let displayTime = 0;
-  if (state.isRunning) {
-    displayTime = runningElapsed;
-  } else if (state.currentTaskId) {
-    const selected = state.tasks.find((t) => t.id === state.currentTaskId);
-    displayTime = selected?.elapsed || 0;
-  }
+const selectedTask = state.tasks.find((t) => t.id === state.currentTaskId);
+const showRunning = state.isRunning && selectedTask;
+
+const runningElapsed = useTimer(showRunning, state.startTimestamp);
+
+const displayTime = useMemo(() => {
+  if (showRunning) return runningElapsed;
+  return selectedTask?.elapsed || 0;
+}, [showRunning, runningElapsed, selectedTask]);
+
 
   const formattedTime = useMemo(() => formatTime(displayTime), [displayTime]);
   useDocumentTitle(`${formattedTime} - Trackwise`);
@@ -44,9 +46,9 @@ export default function Timer() {
   const radius = 120;
   const stroke = 10;
   const normalizedRadius = radius - stroke * 0.5;
+  const circumference = 2 * Math.PI * normalizedRadius;
 
   const textColor = isDark ? "#fff" : "#000";
-  const iconColor = isDark ? "text-white" : "text-black";
   const bgRing = isDark ? "#374151" : "#e5e7eb";
 
   return (
@@ -60,7 +62,28 @@ export default function Timer() {
           state.isRunning ? "shadow-lg" : ""
         }`}
       >
-        <svg height={radius * 2} width={radius * 2}>
+        <svg
+          height={radius * 2}
+          width={radius * 2}
+          viewBox={`0 0 ${radius * 2} ${radius * 2}`}
+          style={{ overflow: "visible" }}
+        >
+          <defs>
+            <linearGradient id="timerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#06b6d4" />
+              <stop offset="100%" stopColor="#3b82f6" />
+            </linearGradient>
+
+            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="4" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+
+          {/* Static gray ring */}
           <circle
             stroke={bgRing}
             fill="transparent"
@@ -69,14 +92,36 @@ export default function Timer() {
             cx={radius}
             cy={radius}
           />
+
+          {/* Glowing blue ring (shows full circle on start, fades out on pause) */}
+          <circle
+            stroke="url(#timerGradient)"
+            fill="transparent"
+            strokeWidth={stroke}
+            r={normalizedRadius}
+            cx={radius}
+            cy={radius}
+            strokeDasharray={circumference}
+            strokeDashoffset={state.isRunning ? 0 : circumference}
+            style={{
+              transition: "stroke-dashoffset 0.5s ease, opacity 0.5s ease",
+              transform: "rotate(-90deg)",
+              transformOrigin: "center",
+              filter: "url(#glow)",
+              opacity: state.isRunning ? 0.81 : 0,
+            }}
+          />
+
+          {/* Timer Text */}
           <text
             x="50%"
             y="50%"
-            dominantBaseline="middle"
+            dominantBaseline="central"
             textAnchor="middle"
-            fontSize="52"
+            fontSize="55"
             fill={textColor}
-            className="transition-opacity duration-150 ease-in-out"
+            style={{ fontWeight: 3.5 }}
+            className="transition-opacity duration-150 ease-in-out fill-gray-800 dark:fill-white"
           >
             {formattedTime}
           </text>
@@ -84,11 +129,11 @@ export default function Timer() {
       </div>
 
       {/* Start / Pause Icon */}
-      <div className={`mt-1 ${iconColor}`}>
+      <div className="mt-1 text-gray-800 dark:text-gray-400">
         {state.isRunning ? (
-          <Pause className="w-10 h-10 opacity-90 drop-shadow-md" />
+          <Pause className="w-10 h-10 opacity-90 drop-shadow-md fill-current" />
         ) : (
-          <Play className="w-10 h-10 opacity-90 drop-shadow-md" />
+          <Play className="w-10 h-10 opacity-90 drop-shadow-md fill-current" />
         )}
       </div>
 
