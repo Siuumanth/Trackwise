@@ -16,13 +16,21 @@ export default function TasksPanel() {
     }
   };
 
-  const handleSelect = (taskId) => {
-    if (state.isRunning) {
-      alert("Please pause the timer before switching tasks.");
-      return;
-    }
-    dispatch({ type: "SELECT_TASK", payload: { taskId } });
-  };
+const handleSelect = (taskId) => {
+  if (state.isRunning) {
+    alert("Please pause the timer before switching tasks.");
+    return;
+  }
+
+  const selected = state.tasks.find((t) => t.id === taskId);
+  const elapsed = selected?.elapsed || 0;
+ 
+  console.log("\n\n\nSelected task:", selected);
+  console.log("Elapsed time:", elapsed);
+
+  dispatch({ type: "SELECT_TASK", payload: { taskId, elapsed } });
+};
+
 
   const handleDelete = () => {
     const selectedTask = state.tasks.find((t) => t.id === state.currentTaskId);

@@ -15,10 +15,26 @@ const showRunning = state.isRunning && selectedTask;
 
 const runningElapsed = useTimer(showRunning, state.startTimestamp);
 
+
+/*
+this useMemo block memoizes the computed displayTime so it only recalculates when one of its dependencies (showRunning, runningElapsed, selectedTask) changes.
+*/
+
+
 const displayTime = useMemo(() => {
-  if (showRunning) return runningElapsed;
+  // If actively running AND the current task matches selectedTask
+  if (
+    showRunning &&
+    state.currentTaskId === selectedTask.id
+  ) {
+  
+    return runningElapsed;
+  }
+  // Else fall back to selectedTask.elapsed
+
   return selectedTask?.elapsed || 0;
-}, [showRunning, runningElapsed, selectedTask]);
+}, [showRunning, state.currentTaskId, runningElapsed, selectedTask]);
+
 
 
   const formattedTime = useMemo(() => formatTime(displayTime), [displayTime]);
@@ -26,7 +42,7 @@ const displayTime = useMemo(() => {
 
   const handleToggle = () => {
     if (!state.currentTaskId) {
-      alert("Please select a task from the right panel first.");
+      alert("Please select a task from the tasks panel first.");
       return;
     }
 
